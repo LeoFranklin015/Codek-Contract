@@ -1,6 +1,6 @@
 # Codex-Contract
 
-deployed on OKB -x1chain
+deployed on OKB -x1chain - RPC : https://testrpc.x1.tech
 
 
 
@@ -19,7 +19,7 @@ decoded output	 -
 logs	[]
 
 
-deployed on scroll
+deployed on scroll - RPC - https://sepolia-rpc.scroll.io
 
 status	0x1 Transaction mined and execution succeed
 transaction hash	0x7d2281e9b934793033416b0addcce723d48c21868daa94d5a286be1a205e906c
