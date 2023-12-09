@@ -55,3 +55,23 @@ input	0x608...50033
 decoded input	{}
 decoded output	 - 
 logs	[]
+
+
+deployed on CELO 
+
+RPC- 
+
+status	0x1 Transaction mined and execution succeed
+transaction hash	0x2cd7bcb2b766709701637520a023c36e506e9f1ccab9cc39137ae4cabfa0dff6
+block hash	0x2abda3eb3a1e875eeb3fca152c12d5f649babd10e3a3a0049711931f87645eeb
+block number	21354602
+contract address	0x4edbff37ec2d031797ffd1defdc3793081c22d37
+from	0xc96302bf12f8f9ce9ba84118cd9b219efc89cc6a
+to	FractionalNFT.(constructor)
+gas	 gas
+transaction cost	3171973 gas 
+input	0x608...e0033
+decoded input	{}
+decoded output	 - 
+logs	[]
+
