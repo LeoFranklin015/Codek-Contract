@@ -1,6 +1,6 @@
 # Codex-Contract
 
-deployed on OKB
+deployed on OKB -x1chain
 
 
 
@@ -13,6 +13,23 @@ from	0xc96302bf12f8f9ce9ba84118cd9b219efc89cc6a
 to	FractionalNFT.(constructor)
 gas	 gas
 transaction cost	2780108 gas 
+input	0x608...50033
+decoded input	{}
+decoded output	 - 
+logs	[]
+
+
+deployed on scroll
+
+status	0x1 Transaction mined and execution succeed
+transaction hash	0x7d2281e9b934793033416b0addcce723d48c21868daa94d5a286be1a205e906c
+block hash	0x7ad0326e70b90cb5a4724a5856efe6c7a04ee06d6bf20895731ff3e129674523
+block number	2536217
+contract address	0x342c352e3900d8baca9b995c8ef0265ef3a62a77
+from	0xc96302bf12f8f9ce9ba84118cd9b219efc89cc6a
+to	FractionalNFT.(constructor)
+gas	 gas
+transaction cost	2780938 gas 
 input	0x608...50033
 decoded input	{}
 decoded output	 - 
