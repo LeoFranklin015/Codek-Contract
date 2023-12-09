@@ -37,7 +37,9 @@ logs	[]
 
 
 
-deployed on polygon zkevm
+deployed on polygon zkevm  
+
+RPC - https://rpc.public.zkevm-test.net
 
 
 status	0x1 Transaction mined and execution succeed
