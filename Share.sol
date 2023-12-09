@@ -1,64 +1,123 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: Unlicense
+pragma solidity ^0.8.1;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
-contract ShareNFT is ERC721, Ownable {
-    uint256 public sharePrice;
-    uint256 public totalShares;
-    address public Owner;
-    mapping(address => uint256) public sharesOwned;
-    uint256 public contractBalance;
+contract FractionalNFTMarketplace is ERC721URIStorage {
 
-    constructor(string memory _name, string memory _symbol, uint256 _totalShares, uint256 _initialPrice) ERC721(_name, _symbol) Ownable(msg.sender) payable {
-        sharePrice = _initialPrice;
-        // Mint initial shares to the contract owner
-        _mint(msg.sender, _totalShares);
-        Owner=msg.sender;
-        sharesOwned[Owner] = _totalShares;
-        totalShares=_totalShares;
-        if (msg.value > 0) {
-            payable(address(this)).transfer(msg.value);
-        }
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+    Counters.Counter private _itemsSold;
+    address payable owner;
+    uint256 listPrice = 0.01 ether;
+
+    mapping(uint256 => uint256) private tokenIdToTotalShares;
+    mapping(uint256 => mapping(address => uint256)) private tokenIdToSharesOwned;
+
+    event TokenListedSuccess (
+        uint256 indexed tokenId,
+        address owner,
+        address seller,
+        uint256 pricePerShare,
+        uint256 totalShares,
+        uint256 availableShares
+    );
+
+    constructor() ERC721("Codek", "CDK") {
+        owner = payable(msg.sender);
     }
 
-function buyShares(uint256 _amount) external payable {
-    require(_amount > 0 && _amount <= totalShares - sharesOwned[msg.sender], "Invalid share amount");
-    uint256 cost = _amount * sharePrice;
-    require(msg.value >= cost, "Insufficient funds sent");
+    function updateListPrice(uint256 _listPrice) public payable {
+        require(owner == msg.sender, "Only owner can update listing price");
+        listPrice = _listPrice;
+    }
 
-    sharesOwned[msg.sender] += _amount;
-    sharesOwned[Owner] -= _amount;
-    totalShares -= _amount; // Update totalShares directly by deducting the bought shares
-    sharePrice = totalShares > 0 ? address(this).balance / totalShares : 0; // Recalculate share price
+    function getListPrice() public view returns (uint256) {
+        return listPrice;
+    }
 
-    _mint(msg.sender, _amount);
-}
+    function createFractionalToken(string memory tokenURI, uint256 pricePerShare, uint256 totalShares) public payable returns (uint) {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
 
-
-  function sellShares(uint256 _amount, address recipient) external {
-    require(_amount > 0 && _amount <= sharesOwned[msg.sender], "Invalid share amount");
-    require(recipient != address(0), "Invalid recipient address");
-
-    sharesOwned[msg.sender] -= _amount;
-    totalShares +=  sharesOwned[Owner];
-    uint256 proceeds = _amount * sharePrice;
-
-    // Update the share price if there are available shares after the transaction
-    sharePrice = (totalShares == 0) ? 0 : sharePrice * totalShares / (totalShares - sharesOwned[owner()]);
-
-    _burn(_amount);
-    payable(recipient).transfer(proceeds);
-}
-
-    function sendEthToRecipient(address payable recipient, uint256 amount) external onlyOwner {
-        require(address(this).balance >= amount, "Insufficient contract balance");
-        require(recipient != address(0), "Invalid recipient address");
+        // require(msg.value == listPrice, "Please send the correct listing price");
+        require(pricePerShare > 0 && totalShares > 0, "Invalid price or total shares");
         
-        recipient.transfer(amount);
+
+        tokenIdToTotalShares[newTokenId] = totalShares;
+        tokenIdToSharesOwned[newTokenId][msg.sender] = totalShares;
+        
+        _safeMint(msg.sender, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        emit TokenListedSuccess(
+            newTokenId,
+            address(this),
+            msg.sender,
+            pricePerShare,
+            totalShares,
+            totalShares
+        );
+
+        return newTokenId;
+    }
+
+    function executeFractionalPurchase(uint256 tokenId, uint256 shares) public payable {
+        uint pricePerShare = listPrice; // Use list price as price per share for simplicity
+        uint totalPrice = pricePerShare * shares;
+        address seller = ownerOf(tokenId);
+
+        require(msg.value == totalPrice, "Please submit the correct payment for the shares");
+        require(shares > 0 && shares <= tokenIdToSharesOwned[tokenId][seller], "Invalid number of shares");
+
+        tokenIdToSharesOwned[tokenId][seller] -= shares;
+        tokenIdToSharesOwned[tokenId][msg.sender] += shares;
+
+        _itemsSold.increment();
+        
+        payable(owner).transfer(totalPrice);
+    }
+
+    // function getSharesOwned(uint256 tokenId, address owner) public view returns (uint256) {
+    //     return tokenIdToSharesOwned[tokenId][owner];
+    // }
+    function getAllNFTs() public view returns (uint256[] memory) {
+        uint256 totalTokens = _tokenIds.current();
+        uint256[] memory tokenIds = new uint256[](totalTokens);
+
+        for (uint256 i = 0; i < totalTokens; i++) {
+            tokenIds[i] = i + 1; // Assuming token IDs start from 1
+        }
+
+        return tokenIds;
+    }
+
+    function getSharesOwned(uint256 tokenId, address account) public view returns (uint256) {
+        return tokenIdToSharesOwned[tokenId][account];
+    }
+
+
+    function getTotalShares(uint256 tokenId) public view returns (uint256) {
+        return tokenIdToTotalShares[tokenId];
+    }
+
+
+    function getTokenData(uint256 tokenId) public view returns (
+        string memory URI,
+        uint256 pricePerShare,
+        uint256 totalShares,
+        uint256 availableShares
+    ) {
+        // require(_exists(tokenId), "Token does not exist");
+        // string memory uri = tokenURI(tokenId);
+
+        URI = tokenURI(tokenId);
+        pricePerShare = getListPrice(); // Assuming list price is the price per share
+        totalShares = getTotalShares(tokenId);
+        availableShares = tokenIdToSharesOwned[tokenId][msg.sender];
+        return (URI, pricePerShare, totalShares, availableShares);
     }
 
 }
-
-
