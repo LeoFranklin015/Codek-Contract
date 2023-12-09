@@ -59,7 +59,7 @@ logs	[]
 
 deployed on CELO 
 
-RPC- 
+RPC- https://alfajores-forno.celo-testnet.org
 
 status	0x1 Transaction mined and execution succeed
 transaction hash	0x2cd7bcb2b766709701637520a023c36e506e9f1ccab9cc39137ae4cabfa0dff6
